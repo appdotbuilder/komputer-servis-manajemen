@@ -1,23 +1,59 @@
+import { db } from '../db';
+import { servicesTable } from '../db/schema';
 import { type UpdateServiceInput, type Service } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function updateService(input: UpdateServiceInput): Promise<Service> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is updating an existing service with diagnosis, repair actions, and status changes.
-    return Promise.resolve({
-        id: input.id,
-        customer_id: 1, // Placeholder
-        device_type: 'Computer',
-        device_brand: null,
-        device_model: null,
-        problem_description: 'Problem description',
-        diagnosis: input.diagnosis || null,
-        repair_actions: input.repair_actions || null,
-        status: input.status || 'pending',
-        estimated_cost: null,
-        actual_cost: input.actual_cost || null,
-        technician_id: input.technician_id || null,
-        created_at: new Date(),
-        updated_at: new Date(),
-        completed_at: input.status === 'completed' ? new Date() : null
-    } as Service);
-}
+export const updateService = async (input: UpdateServiceInput): Promise<Service> => {
+  try {
+    // Build the update object with only provided fields
+    const updateData: any = {
+      updated_at: new Date(),
+    };
+
+    if (input.diagnosis !== undefined) {
+      updateData['diagnosis'] = input.diagnosis;
+    }
+
+    if (input.repair_actions !== undefined) {
+      updateData['repair_actions'] = input.repair_actions;
+    }
+
+    if (input.status !== undefined) {
+      updateData['status'] = input.status;
+      // Set completed_at when status changes to completed
+      if (input.status === 'completed') {
+        updateData['completed_at'] = new Date();
+      }
+    }
+
+    if (input.actual_cost !== undefined) {
+      updateData['actual_cost'] = input.actual_cost?.toString();
+    }
+
+    if (input.technician_id !== undefined) {
+      updateData['technician_id'] = input.technician_id;
+    }
+
+    // Update the service record
+    const result = await db.update(servicesTable)
+      .set(updateData)
+      .where(eq(servicesTable.id, input.id))
+      .returning()
+      .execute();
+
+    if (result.length === 0) {
+      throw new Error(`Service with id ${input.id} not found`);
+    }
+
+    // Convert numeric fields back to numbers before returning
+    const service = result[0];
+    return {
+      ...service,
+      estimated_cost: service.estimated_cost ? parseFloat(service.estimated_cost) : null,
+      actual_cost: service.actual_cost ? parseFloat(service.actual_cost) : null
+    };
+  } catch (error) {
+    console.error('Service update failed:', error);
+    throw error;
+  }
+};

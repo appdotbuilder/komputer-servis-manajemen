@@ -1,7 +1,20 @@
+import { db } from '../db';
+import { usersTable } from '../db/schema';
 import { type User } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getTechnicians(): Promise<User[]> {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching all users with technician role for service assignment.
-    return [];
-}
+export const getTechnicians = async (): Promise<User[]> => {
+  try {
+    // Query all users with technician role
+    const results = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.role, 'technician'))
+      .execute();
+
+    // Return results (no numeric field conversions needed for users table)
+    return results;
+  } catch (error) {
+    console.error('Failed to fetch technicians:', error);
+    throw error;
+  }
+};
