@@ -56,7 +56,16 @@ import { getLowStockProducts } from './handlers/get_low_stock_products';
 import { getCustomerHistory } from './handlers/get_customer_history';
 import { getDashboardStats } from './handlers/get_dashboard_stats';
 
-const t = initTRPC.create({
+// Context type definition
+export interface Context {
+  user?: {
+    id: number;
+    role: 'admin' | 'technician' | 'staff';
+    username: string;
+  };
+}
+
+const t = initTRPC.context<Context>().create({
   transformer: superjson,
 });
 
@@ -111,7 +120,7 @@ const appRouter = router({
   // Stock movement management
   createStockMovement: publicProcedure
     .input(createStockMovementInputSchema)
-    .mutation(({ input }) => createStockMovement(input)),
+    .mutation(({ input, ctx }) => createStockMovement(input, ctx)),
   
   getStockMovements: publicProcedure
     .query(() => getStockMovements()),
@@ -139,7 +148,7 @@ const appRouter = router({
   // Transaction management
   createTransaction: publicProcedure
     .input(createTransactionInputSchema)
-    .mutation(({ input }) => createTransaction(input)),
+    .mutation(({ input, ctx }) => createTransaction(input, ctx)),
   
   getTransactions: publicProcedure
     .query(() => getTransactions()),
@@ -166,7 +175,7 @@ const appRouter = router({
   // Reports (Priority features)
   getFinancialReport: publicProcedure
     .input(getFinancialReportInputSchema)
-    .query(({ input }) => getFinancialReport(input)),
+    .query(({ input, ctx }) => getFinancialReport(input, ctx)),
   
   getStockReport: publicProcedure
     .query(() => getStockReport()),
@@ -185,7 +194,25 @@ async function start() {
       cors()(req, res, next);
     },
     router: appRouter,
-    createContext() {
+    createContext({ req }): Context {
+      // In a real application, you would extract user information from JWT token or session
+      // For now, we'll simulate an authenticated context
+      // You can replace this with your actual authentication logic
+      const authHeader = req.headers.authorization;
+      
+      // Simulate user context - replace with actual authentication
+      if (authHeader) {
+        // This is where you would decode JWT or validate session
+        // For demonstration, we'll create a mock user
+        return {
+          user: {
+            id: 1,
+            role: 'admin', // This would come from your authentication system
+            username: 'admin'
+          }
+        };
+      }
+      
       return {};
     },
   });

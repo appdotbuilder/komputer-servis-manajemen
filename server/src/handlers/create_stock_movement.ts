@@ -2,8 +2,9 @@ import { db } from '../db';
 import { stockMovementsTable, productsTable } from '../db/schema';
 import { type CreateStockMovementInput, type StockMovement } from '../schema';
 import { eq, sql } from 'drizzle-orm';
+import { type Context } from '../index';
 
-export const createStockMovement = async (input: CreateStockMovementInput): Promise<StockMovement> => {
+export const createStockMovement = async (input: CreateStockMovementInput, ctx?: Context): Promise<StockMovement> => {
   try {
     // First verify the product exists
     const existingProduct = await db.select()
@@ -15,6 +16,9 @@ export const createStockMovement = async (input: CreateStockMovementInput): Prom
       throw new Error(`Product with ID ${input.product_id} not found`);
     }
 
+    // Use default user ID for testing when context is missing
+    const userId = ctx?.user?.id || 1;
+
     // Create stock movement record with numeric conversion for price_per_unit
     const result = await db.insert(stockMovementsTable)
       .values({
@@ -23,7 +27,7 @@ export const createStockMovement = async (input: CreateStockMovementInput): Prom
         quantity: input.quantity,
         price_per_unit: input.price_per_unit ? input.price_per_unit.toString() : null,
         notes: input.notes,
-        created_by: 1 // TODO: Replace with actual user ID from context
+        created_by: userId
       })
       .returning()
       .execute();

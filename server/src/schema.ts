@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // User management schemas
-export const userRoleSchema = z.enum(['admin', 'technician']);
+export const userRoleSchema = z.enum(['admin', 'technician', 'staff']);
 export type UserRole = z.infer<typeof userRoleSchema>;
 
 export const userSchema = z.object({
@@ -61,7 +61,7 @@ export const updateCustomerInputSchema = z.object({
 export type UpdateCustomerInput = z.infer<typeof updateCustomerInputSchema>;
 
 // Product/Stock management schemas
-export const productTypeSchema = z.enum(['sparepart', 'accessory']);
+export const productTypeSchema = z.enum(['sparepart', 'accessory', 'other']);
 export type ProductType = z.infer<typeof productTypeSchema>;
 
 export const productSchema = z.object({

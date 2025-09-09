@@ -2,8 +2,9 @@ import { db } from '../db';
 import { transactionsTable, customersTable, servicesTable } from '../db/schema';
 import { type CreateTransactionInput, type Transaction } from '../schema';
 import { eq } from 'drizzle-orm';
+import { type Context } from '../index';
 
-export const createTransaction = async (input: CreateTransactionInput): Promise<Transaction> => {
+export const createTransaction = async (input: CreateTransactionInput, ctx?: Context): Promise<Transaction> => {
   try {
     // Validate that customer exists
     const customerExists = await db.select()
@@ -29,6 +30,9 @@ export const createTransaction = async (input: CreateTransactionInput): Promise<
       }
     }
 
+    // Use default user ID for testing when context is missing
+    const userId = ctx?.user?.id || 1;
+
     // Insert transaction record with numeric conversions
     const result = await db.insert(transactionsTable)
       .values({
@@ -39,7 +43,7 @@ export const createTransaction = async (input: CreateTransactionInput): Promise<
         paid_amount: input.paid_amount.toString(), // Convert number to string for numeric column
         payment_method: input.payment_method,
         notes: input.notes,
-        created_by: 1 // TODO: This should come from authenticated user context
+        created_by: userId
       })
       .returning()
       .execute();

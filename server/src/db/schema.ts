@@ -2,8 +2,8 @@ import { serial, text, pgTable, timestamp, numeric, integer, boolean, pgEnum } f
 import { relations } from 'drizzle-orm';
 
 // Enums
-export const userRoleEnum = pgEnum('user_role', ['admin', 'technician']);
-export const productTypeEnum = pgEnum('product_type', ['sparepart', 'accessory']);
+export const userRoleEnum = pgEnum('user_role', ['admin', 'technician', 'staff']);
+export const productTypeEnum = pgEnum('product_type', ['sparepart', 'accessory', 'other']);
 export const stockMovementTypeEnum = pgEnum('stock_movement_type', ['in', 'out']);
 export const serviceStatusEnum = pgEnum('service_status', ['pending', 'in_progress', 'completed', 'cancelled']);
 export const transactionTypeEnum = pgEnum('transaction_type', ['sale', 'service']);
